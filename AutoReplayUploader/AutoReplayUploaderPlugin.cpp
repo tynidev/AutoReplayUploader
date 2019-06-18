@@ -29,6 +29,8 @@ BAKKESMOD_PLUGIN(AutoReplayUploaderPlugin, "Auto replay uploader plugin", "0.1",
 #define CVAR_BALLCHASING_AUTH_KEY "cl_autoreplayupload_ballchasing_authkey"
 #define CVAR_BALLCHASING_AUTH_TEST_RESULT "cl_autoreplayupload_ballchasing_testkeyresult"
 #define CVAR_BALLCHASING_REPLAY_VISIBILITY "cl_autoreplayupload_ballchasing_visibility"
+#define CVAR_CALCULATED_REPLAY_VISIBILITY "cl_autoreplayupload_calculated_visibility"
+#define CVAR_CALCULATED_TAGNAMES "cl_autoreplayupload_calculated_tagnames"
 
 string GetPlaylistName(int playlistId);
 
@@ -123,11 +125,13 @@ void AutoReplayUploaderPlugin::onUnload()
 
 void AutoReplayUploaderPlugin::InitializeVariables()
 {
-	// What endpoints should we upload to?
+	// Calculated variables
 	cvarManager->registerCvar(CVAR_UPLOAD_TO_CALCULATED, "0", "Upload to replays to calculated.gg automatically", true, true, 0, true, 1).bindTo(uploadToCalculated);
-	cvarManager->registerCvar(CVAR_UPLOAD_TO_BALLCHASING, "0", "Upload to replays to ballchasing.com automatically", true, true, 0, true, 1).bindTo(uploadToBallchasing);
+	cvarManager->registerCvar(CVAR_CALCULATED_REPLAY_VISIBILITY, "DEFAULT", "Replay visibility when uploading to calculated.gg", false, false, 0, false, 0, false).bindTo(calculated->visibility);
+	cvarManager->registerCvar(CVAR_CALCULATED_TAGNAMES, "", "Tags to add to replay when uploading to calculated.gg", false, false, 0, false, 0, false).bindTo(calculated->tags);
 	
-	// Ball Chasing variables	
+	// Ballchasing variables	
+	cvarManager->registerCvar(CVAR_UPLOAD_TO_BALLCHASING, "0", "Upload to replays to ballchasing.com automatically", true, true, 0, true, 1).bindTo(uploadToBallchasing);
 	cvarManager->registerCvar(CVAR_BALLCHASING_REPLAY_VISIBILITY, "public", "Replay visibility when uploading to ballchasing.com", false, false, 0, false, 0, false).bindTo(ballchasing->visibility);
 	cvarManager->registerCvar(CVAR_BALLCHASING_AUTH_TEST_RESULT, "Untested", "Auth token needed to upload replays to ballchasing.com", false, false, 0, false, 0, false);
 	cvarManager->registerCvar(CVAR_BALLCHASING_AUTH_KEY, "", "Auth token needed to upload replays to ballchasing.com").bindTo(ballchasing->authKey);
@@ -208,7 +212,7 @@ void AutoReplayUploaderPlugin::OnGameComplete(ServerWrapper caller, void * param
 	// Upload replay
 	if (*uploadToCalculated)
 	{
-		calculated->UploadReplay(replayPath);
+		calculated->UploadReplay(replayPath, to_string(caller.GetLocalPrimaryPlayer().GetPRI().GetUniqueId().ID));
 	}
 	if (*uploadToBallchasing)
 	{

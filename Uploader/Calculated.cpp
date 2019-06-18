@@ -1,6 +1,7 @@
 #include "Calculated.h"
 
 #include "HttpClient.h"
+#include "Utils.h"
 
 using namespace std;
 
@@ -28,7 +29,7 @@ void CalculatedRequestComplete(HttpRequestObject* ctx)
 /**
 * Posts the replay file to Calculated.gg
 */
-void Calculated::UploadReplay(string replayPath)
+void Calculated::UploadReplay(string replayPath, string playerId)
 {
 	if (UserAgent.empty() || replayPath.empty())
 	{
@@ -38,10 +39,18 @@ void Calculated::UploadReplay(string replayPath)
 		return;
 	}
 
+	string path = AppendGetParams("api/upload", { {"player_id", playerId}, {"visibility", *visibility} });
+	if (tags->size() > 0)
+	{
+		string tagParam = "&tags=" + *tags;
+		ReplaceAll(tagParam, ",", "&tags=");
+		path += tagParam;
+	}
+
 	// Fire new thread and make request, dont't wait for response
 	HttpFileUploadAsync(
 		"calculated.gg",
-		"api/upload",
+		path,
 		UserAgent,
 		replayPath,
 		"replays",
