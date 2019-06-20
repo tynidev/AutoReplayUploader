@@ -22,7 +22,7 @@ void BallchasingRequestComplete(HttpRequestObject* ctx)
 	if (ctx->RequestId == 1)
 	{
 		ballchasing->Log(ballchasing->Client, "Ballchasing::UploadCompleted with status: " + to_string(ctx->Status));
-		ballchasing->NotifyUploadResult(ballchasing->Client, (ctx->Status >= 200 && ctx->Status < 300));
+		ballchasing->NotifyUploadResult(ballchasing->Client, (ctx->Status == 201));
 		
 		delete[] ctx->ReqData;
 		delete[] ctx->RespData;
@@ -53,7 +53,7 @@ void Ballchasing::UploadReplay(string replayPath)
 	// Fire new thread and make request, dont't wait for response
 	HttpFileUploadAsync(
 		"ballchasing.com",
-		AppendGetParams("api/upload", { {"visibility", *visibility} }),
+		AppendGetParams("api/v2/upload", { {"visibility", *visibility} }),
 		UserAgent,
 		replayPath,
 		"file",
